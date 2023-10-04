@@ -3,35 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Chat Channel Task</title>
+    <title>Live Chat Task</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
-        <div v-if="!userName" class="name-input">
-            <input @keyup.enter="setUserName" v-model="newUserName" placeholder="Enter your name..." />
-            <button @click="setUserName">Set Name</button>
-        </div>
-        <div v-if="userName" class="chat-container">
-            <h2>Welcome, {{ userName }}!</h2>
-            <div class="chat-box">
-                <div v-for="message in messages" :key="message.id">
-                    <span v-if="message.name">{{ message.name }}:</span>
-                    {{ message.text }}
+    <div id="app" class="container mt-5">
+        <div v-if="!userName" class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="input-group">
+                    <input @keyup.enter="setUserName" v-model="newUserName" placeholder="Enter your name..." class="form-control">
+                    <div class="input-group-append">
+                        <button @click="setUserName" class="btn btn-primary">Set Name</button>
+                    </div>
                 </div>
             </div>
-            <div class="input-container">
-              <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type your message..." />
-              <button @click="sendMessage">Send</button>
+        </div>
+        <div v-if="userName" class="row">
+            <div class="col-md-8 offset-md-2">
+                <h2 class="text-center mb-3">Live Chat Task</h2>
+                <div class="card chat-container">
+                    <div class="card-body chat-box">
+                        <div v-for="message in messages" :key="message.id" class="message" >
+                            <div class="message-content" :class="{ 'current-user-message': message.name === userName }">
+                                <span v-if="message.name" class="message-sender">{{ message.name }}:</span>
+                                {{ message.text }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mt-3">
+                    <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type your message..." class="form-control">
+                    <div class="input-group-append">
+                        <button @click="sendMessage" class="btn btn-primary">Send</button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div v-if="errors.length > 0" class="error-container">
-            <ul>
-                <li v-for="error in errors">{{ error }}</li>
-            </ul>
+        <div v-if="errors.length > 0" class="row mt-3">
+            <div class="col-md-8 offset-md-2">
+                <div class="alert alert-danger">
+                    <ul>
+                        <li v-for="error in errors">{{ error }}</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -87,51 +106,37 @@
         });
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+
     <style>
-        .name-input {
-            display: flex;
-            align-items: center;
-            width: 90%;
-            margin: 0 auto;
+        .message {
+            margin-bottom: 10px;
+            overflow: hidden;
         }
 
-        .chat-container {
-            border: 1px solid #ccc;
+        .message-content {
+            background-color: #DCF8C6;
             padding: 10px;
-            height: 60%;
-            overflow-y: scroll;
-            width: 90%;
-            margin: 0 auto;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            border-radius: 10px;
+            display: inline-block;
+            max-width: 70%;
+        }
+
+        .message-sender {
+            font-weight: bold;
+        }
+
+        .current-user-message {
+            background-color: #80808047;
+            border-radius: 10px;
+            max-width: 70%;
+            float: right;
         }
 
         .chat-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 200px;
+            max-height: 300px;
             overflow-y: scroll;
-        }
-
-        .input-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-
-        input {
-            flex-grow: 1;
-            padding: 5px;
-        }
-
-        button {
-            margin-left: 10px;
-        }
-
-        .error-container {
-            margin-top: 10px;
-            color: red;
         }
     </style>
 </body>
