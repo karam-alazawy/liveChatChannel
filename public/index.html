@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat Channel Task</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+<body>
+    <div id="app">
+        <div v-if="!userName" class="name-input">
+            <input @keyup.enter="setUserName" v-model="newUserName" placeholder="Enter your name..." />
+            <button @click="setUserName">Set Name</button>
+        </div>
+        <div v-if="userName" class="chat-container">
+            <h2>Welcome, {{ userName }}!</h2>
+            <div class="chat-box">
+                <div v-for="message in messages" :key="message.id">
+                    <span v-if="message.name">{{ message.name }}:</span>
+                    {{ message.text }}
+                </div>
+            </div>
+            <div class="input-container">
+              <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type your message..." />
+              <button @click="sendMessage">Send</button>
+            </div>
+        </div>
+        <div v-if="errors.length > 0" class="error-container">
+            <ul>
+                <li v-for="error in errors">{{ error }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        Pusher.logToConsole = true;
+
+        var pusher = new Pusher('34edae18d3b7e00f40b0', {
+            cluster: 'eu'
+        });
+
+        var channel = pusher.subscribe('my-channel');
+        channel.bind('my-event', function(data) {
+            console.log(data['message']);
+
+            app.messages.push(data);
+        });
+
+        const app = new Vue({
+            el: '#app',
+            data: {
+                userName: '',
+                newMessage: '',
+                newUserName: '',
+                messages: [],
+                errors: [],
+            },
+            methods: {
+                setUserName() {
+                    this.userName = this.newUserName;
+                },
+                sendMessage() {
+                    if (this.newMessage.trim() !== '') {
+                        axios.post('http://127.0.0.1:8000/api/send-message', {
+                            name: this.userName,
+                            message: this.newMessage
+                        })
+                        .then(response => {
+                            const serverResponse = response.data.message;
+                            this.newMessage = '';
+                            this.errors = []; 
+                        })
+                        .catch(error => {
+                            console.error('Error sending message:', error);
+                            if (error.response && error.response.data && error.response.data.error) {
+                                this.errors = Object.values(error.response.data.error);
+                            } else {
+                                this.errors = ['error while sending the message.'];
+                            }
+                        });
+                    }
+                },
+            },
+        });
+    </script>
+
+    <style>
+        .name-input {
+            display: flex;
+            align-items: center;
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        .chat-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 60%;
+            overflow-y: scroll;
+            width: 90%;
+            margin: 0 auto;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 200px;
+            overflow-y: scroll;
+        }
+
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 5px;
+        }
+
+        button {
+            margin-left: 10px;
+        }
+
+        .error-container {
+            margin-top: 10px;
+            color: red;
+        }
+    </style>
+</body>
+</html>
